@@ -3,6 +3,10 @@ import SwiftUI
 class KitsuNetworkManager: ObservableObject {
     @Published var kitsu:Kitsu?
 
+    init(kitsu: Kitsu? = nil) {
+        self.kitsu = kitsu
+        fetchAnime()
+    }
 
     func fetchAnime() {
         guard let url = URL(string: "https://kitsu.io/api/edge/anime") else { fatalError("Missing URL") }

@@ -7,9 +7,10 @@ struct DecemberProjectApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(kitsuNetworkManager)
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+//            ContentView()
+//                .environmentObject(kitsuNetworkManager)
+//                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            HomeScreenView()
         }
     }
 }

@@ -6,6 +6,17 @@ struct HomeScreenView: View{
     @ObservedObject var kitsuNetworkManager = KitsuNetworkManager()
     @State private var selectedIndex: Int = 0
     private let categories = ["All", "Movies", "Series", "Action"]
+    var card : Attributes?
+    @State var searchText: String = ""
+    var searchResults: [Datum]?{
+        let list = kitsuNetworkManager.kitsu?.data
+        return searchText == "" ? list : list?.filter {
+            guard let canonicalTitle = $0.attributes?.canonicalTitle else{
+                return false
+            }
+           return canonicalTitle.lowercased().contains(searchText.lowercased())
+        }
+    }
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,60 +29,70 @@ struct HomeScreenView: View{
                     TagLineView()
                         .padding()
 
-                    SearchBarView()
+                    SearchBarView(searchText: $searchText)
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(0 ..< categories.count) { i in
-                                //if isActive == 1 then it's active
-                                CategoryView(isActive: i == selectedIndex, text: categories[i])
-                                    .onTapGesture {
-                                        selectedIndex = i
-                                    }                        }
-                        }
-                        .padding()
-                    }
-
-                    Text("Shows you'll like")
-                        .fontWeight(.semibold)
-                        .font(.system(size: 26))
-                        .foregroundColor(.gray)
-                        .padding(.horizontal)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(/*@START_MENU_TOKEN@*/0 ..< 5/*@END_MENU_TOKEN@*/) { item in
-                                NavigationLink(destination: DetailScreenView(), label: {       ShowCardView(image: Image(systemName: "chair"))
-                                                                                                            })
-                                .navigationBarHidden(true)
-                                .foregroundColor(.black)
-
+                    if !searchText.isEmpty {
+                        List {
+                            ForEach(searchResults ?? [], id: \.self) { data in
+                                Text(data.attributes?.canonicalTitle ?? "")
                             }
-                            .padding(.trailing)
-                        }  .onAppear {
-                            kitsuNetworkManager.fetchAnime()
                         }
-                        .padding(.leading)
+                    } else {
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(0 ..< categories.count) { i in
+                                    //if isActive == 1 then it's active
+                                    CategoryView(isActive: i == selectedIndex, text: categories[i])
+                                        .onTapGesture {
+                                            selectedIndex = i
+                                        }                        }
+                            }
+                            .padding()
+                        }
+
+                        Text("Shows you'll like")
+                            .fontWeight(.semibold)
+                            .font(.system(size: 26))
+                            .foregroundColor(.gray)
+                            .padding(.horizontal)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(kitsuNetworkManager.kitsu?.data ?? [], id: \.self) { item in
+                                    NavigationLink(destination: DetailScreenView(card: item.attributes), label: {
+                                        ShowCardView(card: item.attributes)
+                                    })
+                                    .navigationBarHidden(false)
+                                    .foregroundColor(.black)
+
+                                }
+                                .padding(.trailing)
+                            }  .onAppear {
+                                kitsuNetworkManager.fetchAnime()
+                            }
+                            .padding(.leading)
+                        }
+
+
+
                     }
 
+                    HStack{
+                        BottonNavBarItem(image: Image(systemName: "magnifyingglass")){}
+                        BottonNavBarItem(image: Image(systemName: "house")){}
+                        BottonNavBarItem(image: Image(systemName: "heart")){}
+                        BottonNavBarItem(image: Image(systemName: "person")){}
 
+                    }
+                    .padding()
+                    .background(Color.gray)
+                    .clipShape(Capsule())
+                    .padding()
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 2, y: 6)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
 
                 }
-
-                HStack{
-                    BottonNavBarItem(image: Image(systemName: "magnifyingglass")){}
-                    BottonNavBarItem(image: Image(systemName: "magnifyingglass")){}
-                    BottonNavBarItem(image: Image(systemName: "heart")){}
-                    BottonNavBarItem(image: Image(systemName: "person")){}
-
-                }
-                .padding()
-                .background(Color.white)
-                .clipShape(Capsule())
-                .padding()
-                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 2, y: 6)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-
             }
         }
     }
@@ -93,17 +114,11 @@ struct TagLineView: View {
 }
 
 struct SearchBarView: View {
-    @State private var searchText: String = ""
+    @Binding var searchText: String
     @State var kitsu:Kitsu?
+
     var body: some View {
-//        NavigationView {
-//            List(kitsu?.data, id: \.id) {
-//                HStack {
-//                    Text(kitsu?.data?.first?.attributes.canonical)
-//                }
-//            }
-//            
-//        }
+
         HStack {
             HStack {
                 Image(systemName: "magnifyingglass")
@@ -142,18 +157,24 @@ struct CategoryView: View {
 }
 
 struct ShowCardView: View {
-    @ObservedObject var kitsuNetworkManager = KitsuNetworkManager()
-    let image: Image
+    var card : Attributes?
     var body: some View {
         VStack {
-            image
-                .resizable()
-                .frame(width: 200, height: 200)
-                .cornerRadius(20.0)
+            AsyncImage(url: URL(string: card?.coverImage?.original ?? "" )){ image in
+                                            image
+                    .resizable()
+                    .frame(width: 200, height: 200)
+                    .cornerRadius(20.0)
+                                                .padding()
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
 
-            Text(kitsuNetworkManager.kitsu?.data?.first?.attributes?.canonicalTitle ?? "CoeBoy Coy")
+
+            Text(card?.titles?.en ?? "")
                 .font(.title3)
                 .fontWeight(.bold)
+
         }
         .frame(width: 200)
         .padding()

@@ -1,8 +1,3 @@
-// This file was generated from JSON Schema using quicktype, do not modify it directly.
-// To parse the JSON, add this file to your project and do:
-//
-//   let kitsu = try? JSONDecoder().decode(Kitsu.self, from: jsonData)
-
 import Foundation
 
 // MARK: - Kitsu
@@ -13,12 +8,20 @@ struct Kitsu: Codable {
 }
 
 // MARK: - Datum
-struct Datum: Codable {
+struct Datum: Codable, Hashable {
+    static func == (lhs: Datum, rhs: Datum) -> Bool {
+        lhs.id == rhs.id
+    }
+
     let id: String?
     let type: TypeEnum?
     let links: DatumLinks?
     let attributes: Attributes?
     let relationships: [String: Relationship]?
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 // MARK: - Attributes

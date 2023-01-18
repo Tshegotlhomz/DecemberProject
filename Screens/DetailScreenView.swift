@@ -3,6 +3,7 @@
 import SwiftUI
 
 struct DetailScreenView: View {
+    var card: Attributes?
     var body: some View {
         ZStack{
             Color(.darkGray)
@@ -15,13 +16,10 @@ struct DetailScreenView: View {
 //                )
 
             VStack {
-                Image(systemName: "person")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .edgesIgnoringSafeArea(.top)
 
-                DescriptionView()
-                    .offset(y: -40)
+                DescriptionView(card: card)
+                
+                    
 
 
             }
@@ -30,14 +28,26 @@ struct DetailScreenView: View {
 }
 
 struct DescriptionView: View {
+    var card: Attributes?
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Angry World")
-                .font(.title)
+        VStack {
+            AsyncImage(url: URL(string: card?.coverImage?.original ?? "" )){ image in
+                image
+                    .resizable()
+                    .frame(width: 200, height: 200)
+                    .cornerRadius(20.0)
+                    .padding()
+            } placeholder: {
+                ProgressView()
+            }
+        }
+        ScrollView {
+            Text(card?.titles?.en ?? "")
+                .font(.title3)
                 .fontWeight(.bold)
 
             VStack(spacing: 4) {
-                Text("slug description")
+                Text(card?.slug ?? "")
                     .opacity(0.5)
                     .padding(.leading, 8)
 
@@ -51,7 +61,7 @@ struct DescriptionView: View {
                         .fontWeight(.medium)
                     .padding(.vertical, 5)
 
-                    Text("gvdjvnkvvhdvhjkg,mvnbgsdeukg,vmcnbnxfhgjk,vbcvnzkmnbvnvgh")
+                    Text(card?.synopsis ?? "")
                         .lineSpacing(6.0)
                         .opacity(0.6)
                         .padding(.vertical, 3)
@@ -61,10 +71,10 @@ struct DescriptionView: View {
 
 
 //
-            VStack (alignment: .leading) {
+            VStack () {
                     Text("Rating")
                         .fontWeight(.semibold)
-                    Text("88.6")
+                Text(card?.averageRating ?? "")
                         .opacity(0.6)
 
 
@@ -72,7 +82,7 @@ struct DescriptionView: View {
                     Text("Age Rating Guide")
                         .fontWeight(.semibold)
                 }
-                    Text("17+(violence & profinity")
+                Text(card?.ageRatingGuide ?? "")
                         .opacity(0.6)
 
                 }
